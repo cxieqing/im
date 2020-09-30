@@ -16,6 +16,14 @@ const (
 	UnRead ReadType = 0
 )
 
+type SendType uint8
+
+const (
+	HasSend SendType = 1
+
+	UnSend SendType = 0
+)
+
 type ContenType uint8
 
 const (
@@ -25,19 +33,37 @@ const (
 )
 
 type Message struct {
-	Id         int
-	Type       MessageType
-	Content    []byte
-	From       int
-	To         int
-	IsRead     ReadType
-	CreateTime int64
+	Id          int
+	ContentType ContenType
+	Content     string
+	From        int
+	To          int
+	IsRead      ReadType
+	IsSend      SendType
+	Len         float32
+	CreateTime  int64
 }
 
-func (m Message) save() bool {
+func (m Message) save(mtype MessageType) bool {
 	return true
 }
 
-func GetUserUnReadMsgById(uid int) {
+func GetUserUnsendMsgByUserId(uid int) []Message {
+	return []Message{}
+}
 
+func GetUserUnsendMsgByGroupId(gid int) []Message {
+	return []Message{}
+}
+
+func SaveUnsendGroupMsg(m Message) bool {
+	return true
+}
+
+func SaveUnsendUserMsg(m Message) bool {
+	return true
+}
+
+func SaveSendUserMsg(m Message) bool {
+	return true
 }
