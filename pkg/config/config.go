@@ -11,12 +11,17 @@ type Config struct {
 	Port          int
 	Host          string
 	MaxClinetNum  int
-	ReadDeadline  int64
-	WriteDeadline int64
+	ReadDeadline  int
+	WriteDeadline int
 	MaxGroupNum   int
 	RedisHost     string
 	RedisPort     int
 	RedisAuth     string
+	MysqlUsername string
+	MysqlPassword string
+	MysqlHost     string
+	MysqlPort     string
+	MysqlDatabase string
 }
 
 var instance *Config
@@ -33,15 +38,20 @@ func getInstance(path string) *Config {
 		if err != nil { // Handle errors reading the config file
 			panic(fmt.Errorf("Fatal error config file: %s \n", err))
 		}
-		instance.Port = viper.GetInt("Port")
-		instance.Host = viper.GetString("Host")
-		instance.MaxClinetNum = viper.GetInt("MaxClinetNum")
-		instance.ReadDeadline = int64(viper.GetInt("ReadDeadline"))
-		instance.WriteDeadline = int64(viper.GetInt("WriteDeadline"))
-		instance.MaxGroupNum = viper.GetInt("MaxGroupNum")
-		instance.RedisHost = viper.GetString("RedisHost")
-		instance.RedisPort = viper.GetInt("RedisPort")
-		instance.RedisAuth = viper.GetString("RedisAuth")
+		instance.Port = viper.GetInt("port")
+		instance.Host = viper.GetString("host")
+		instance.MaxClinetNum = viper.GetInt("maxClinetNum")
+		instance.ReadDeadline = viper.GetInt("readDeadline")
+		instance.WriteDeadline = viper.GetInt("writeDeadline")
+		instance.MaxGroupNum = viper.GetInt("maxGroupNum")
+		instance.RedisHost = viper.GetString("redisHost")
+		instance.RedisPort = viper.GetInt("redisPort")
+		instance.RedisAuth = viper.GetString("redisAuth")
+		instance.MysqlUsername = viper.GetString("mysqlUsername")
+		instance.MysqlPassword = viper.GetString("mysqlPassword")
+		instance.MysqlHost = viper.GetString("mysqlHost")
+		instance.MysqlPort = viper.GetString("mysqlPort")
+		instance.MysqlDatabase = viper.GetString("mysqlDatabase")
 	})
 	return instance
 }

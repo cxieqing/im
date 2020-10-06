@@ -9,9 +9,11 @@ import (
 	"github.com/gorilla/websocket"
 )
 
+const maxMessageSize = 512
+
 type Clinet struct {
 	Connet     *websocket.Conn
-	Group      map[int]*user.Group
+	Group      map[uint]*user.Group
 	UserInfo   *user.User
 	MessageChn chan ImMessage
 }
@@ -20,8 +22,8 @@ type ImMessage struct {
 	Token       string              `json:"token"`
 	Content     string              `json:"content"`
 	ContentType message.ContenType  `json:"contentType"`
-	To          int                 `json:"to"`
-	From        int                 `json:"from"`
+	To          uint                `json:"to"`
+	From        uint                `json:"from"`
 	MessageType message.MessageType `json:"messageType"`
 	Len         float32             `json:"len"`
 }
@@ -36,32 +38,53 @@ func NewClinet(connet *websocket.Conn, token string) *Clinet {
 
 func (c *Clinet) Init() {
 	c.InitGroup()
-	go func() {
-		c.InitMessage()
-	}()
+	go c.InitMessage()
+	go c.InitGroupMessage()
 }
 
 func (c *Clinet) InitGroup() {
-	groups := user.GetGroupsByUserId(c.UserInfo.Id)
+	groups := user.GetGroupsByUserId(c.UserInfo.ID)
 	for _, g := range groups {
-		c.Group[g.Id] = &g
+		c.Group[g.ID] = &g
 	}
 }
 
 func (c *Clinet) InitMessage() {
-	messages := message.GetUserUnsendMsgByUserId(c.UserInfo.Id)
+	messages := message.GetUserUnsendMsgByUserId(c.UserInfo.ID)
 	for _, m := range messages {
-		c.MessageChn <- MsgTransToIm(m, message.UserMessage)
+		c.WriteMessage(MsgTransToIm(m, message.User))
 	}
 }
 
 func (c *Clinet) InitGroupMessage() {
 	for gid := range c.Group {
-		messages := message.GetUserUnsendMsgByGroupId(gid)
+		messages := message.GetUserUnsendMsgByGroupId(gid, c.UserInfo.ID)
 		for _, m := range messages {
-			c.MessageChn <- MsgTransToIm(m, message.GroupMessage)
+			c.WriteMessage(MsgTransToIm(m, message.Group))
 		}
 	}
+}
+
+func (c *Clinet) ReadMessage() (ImMessage, error) {
+	msg := ImMessage{}
+	c.Connet.SetReadLimit(maxMessageSize)
+	err := c.Connet.ReadJSON(msg)
+	return msg, err
+}
+
+func (c *Clinet) WriteMessage(m ImMessage) {
+	defer func() {
+		if err := recover(); err != nil {
+			dm := ImTransTomsg(m)
+			dm.IsSend = message.UnSend
+			if m.MessageType == message.User {
+				message.SaveUserMsg(dm, message.UnSend)
+			} else {
+				message.SaveUnsendGroupMsg(dm)
+			}
+		}
+	}()
+	c.MessageChn <- m
 }
 
 func checkToken(token string) *user.User {

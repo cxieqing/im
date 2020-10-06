@@ -1,0 +1,16 @@
+{
+  "port": 80,
+  "host": "127.0.0.1",
+  "maxClinetNum": 1000,
+  "readDeadline": 5,
+  "writeDeadline": 5,
+  "maxGroupNum": 16,
+  "redisHost": "127.0.0.1",
+  "redisPort": 6379,
+  "redisAuth": "",
+  "mysqlUsername": "root",
+  "mysqlPassword": "xieqing",
+  "mysqlHost": "127.0.0.1",
+  "mysqlPort": 3306,
+  "mysqlDatabase": "im"
+}

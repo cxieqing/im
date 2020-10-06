@@ -3,29 +3,24 @@ package main
 import (
 	"flag"
 	"fmt"
-	"sync"
+	"im/pkg/config"
+	"im/server"
+	"net/http"
 )
 
 func main() {
 	version := flag.Bool("version", false, "show im version")
-	help := flag.Bool("h", false, "show help")
+	addr := flag.String("addr", ":80", "http service address")
+	//help := flag.Bool("h", false, "show help")
 	port := flag.Int("p", 6890, "set port")
 	flag.Parse()
 
 	if *version {
-		fmt.Println(pkg.Version)
+		fmt.Println(server.Version)
 	}
-	config.port = port
-	var wg sync.WaitGroup
-	wg.Add(2)
-	go func() {
-		rpc.server()
-		defer wg.Done()
-	}()
-
-	go func() {
-		im.server()
-		defer wg.Done()
-	}()
-	wg.Wait()
+	config := config.NewConfig()
+	config.Port = *port
+	http.HandleFunc("/im", server.ImServer)
+	http.HandleFunc("/user", server.UserRpc)
+	http.ListenAndServe(*addr, nil)
 }

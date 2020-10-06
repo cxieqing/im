@@ -1,11 +1,19 @@
 package message
 
+import (
+	"errors"
+	"im/pkg/db"
+	"time"
+
+	"gorm.io/gorm"
+)
+
 type MessageType uint8
 
 const (
-	UserMessage MessageType = 1
+	User MessageType = 1
 
-	GroupMessage MessageType = 2
+	Group MessageType = 2
 )
 
 type ReadType uint8
@@ -33,37 +41,79 @@ const (
 )
 
 type Message struct {
-	Id          int
+	ID          uint `gorm:"primarykey"`
 	ContentType ContenType
 	Content     string
-	From        int
-	To          int
-	IsRead      ReadType
+	From        uint
+	To          uint
 	IsSend      SendType
 	Len         float32
-	CreateTime  int64
+	CreatedAt   time.Time
 }
 
-func (m Message) save(mtype MessageType) bool {
-	return true
+type UserMessage struct {
+	Message
+	MessageType MessageType
+	IsRead      ReadType
+	UpdatedAt   time.Time
+	DeletedAt   gorm.DeletedAt `gorm:"index"`
 }
 
-func GetUserUnsendMsgByUserId(uid int) []Message {
-	return []Message{}
+type GroupMessage struct {
+	Message
 }
 
-func GetUserUnsendMsgByGroupId(gid int) []Message {
-	return []Message{}
+func GetUserUnsendMsgByUserId(uid uint) []Message {
+	var messages []Message
+	result := db.MysqlDB.Where("message_type=? AND is_send=? AND to=?", User, UnSend, uid).Find(messages)
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		//@todo log
+	}
+	return messages
 }
 
-func SaveUnsendGroupMsg(m Message) bool {
-	return true
+func GetUserUnsendMsgByGroupId(gid uint, uid uint) []Message {
+	var messages []Message
+	result := db.MysqlDB.Where("message_type=? AND is_send=? AND from=? AND to=?", Group, UnSend, gid, uid).Find(messages)
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		//@todo log
+	}
+	return messages
 }
 
-func SaveUnsendUserMsg(m Message) bool {
-	return true
+func SaveUnsendGroupMsg(m Message) (uint, error) {
+	now := time.Now()
+	umsg := UserMessage{
+		Message: m,
+	}
+	umsg.CreatedAt = now
+	umsg.IsSend = UnSend
+	umsg.IsRead = UnRead
+	umsg.MessageType = Group
+	result := db.MysqlDB.Save(umsg)
+	return umsg.ID, result.Error
 }
 
-func SaveSendUserMsg(m Message) bool {
-	return true
+func SaveUserMsg(m Message, s SendType) (uint, error) {
+	now := time.Now()
+	umsg := UserMessage{
+		Message: m,
+	}
+	umsg.CreatedAt = now
+	umsg.IsSend = s
+	umsg.IsRead = UnRead
+	umsg.MessageType = User
+	result := db.MysqlDB.Save(umsg)
+	return umsg.ID, result.Error
+}
+
+func SaveGroupMsg(m Message) (uint, error) {
+	now := time.Now()
+	gmsg := GroupMessage{
+		Message: m,
+	}
+	gmsg.CreatedAt = now
+	gmsg.IsSend = HasSend
+	result := db.MysqlDB.Save(gmsg)
+	return gmsg.ID, result.Error
 }

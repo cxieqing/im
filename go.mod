@@ -1,5 +1,7 @@
 module im
 
+replace github.com/go-gorm/gorm => gorm.io/gorm v1.20.2
+
 go 1.15
 
 require (
