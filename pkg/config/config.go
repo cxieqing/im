@@ -8,9 +8,11 @@ import (
 )
 
 type Config struct {
-	Port          int
-	Host          string
-	MaxClinetNum  int
+	ImPort        int
+	ImHost        string
+	RpcPort       int
+	RpcHost       string
+	MaxClientNum  int
 	ReadDeadline  int
 	WriteDeadline int
 	MaxGroupNum   int
@@ -38,9 +40,11 @@ func getInstance(path string) *Config {
 		if err != nil { // Handle errors reading the config file
 			panic(fmt.Errorf("Fatal error config file: %s \n", err))
 		}
-		instance.Port = viper.GetInt("port")
-		instance.Host = viper.GetString("host")
-		instance.MaxClinetNum = viper.GetInt("maxClinetNum")
+		instance.ImPort = viper.GetInt("imPort")
+		instance.ImHost = viper.GetString("imHost")
+		instance.RpcPort = viper.GetInt("rpcPort")
+		instance.RpcHost = viper.GetString("rpcHost")
+		instance.MaxClientNum = viper.GetInt("maxClientNum")
 		instance.ReadDeadline = viper.GetInt("readDeadline")
 		instance.WriteDeadline = viper.GetInt("writeDeadline")
 		instance.MaxGroupNum = viper.GetInt("maxGroupNum")
@@ -57,5 +61,5 @@ func getInstance(path string) *Config {
 }
 
 func NewConfig() *Config {
-	return getInstance("./server.json")
+	return getInstance("D:/go/im/server.json")
 }

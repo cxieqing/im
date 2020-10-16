@@ -7,6 +7,7 @@ import (
 
 	"gorm.io/driver/mysql"
 	"gorm.io/gorm"
+	"gorm.io/gorm/schema"
 )
 
 var MysqlDB *gorm.DB
@@ -22,7 +23,9 @@ func init() {
 		config.MysqlDatabase,
 	)
 	var err error
-	MysqlDB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{})
+	MysqlDB, err = gorm.Open(mysql.Open(dsn), &gorm.Config{NamingStrategy: schema.NamingStrategy{
+		SingularTable: true,
+	}})
 	if err != nil {
 		panic(fmt.Errorf("Fatal error mysql connect: %s \n", err))
 	}

@@ -1,7 +1,9 @@
 {
-  "port": 80,
-  "host": "127.0.0.1",
-  "maxClinetNum": 1000,
+  "imPort": 6789,
+  "imHost": "127.0.0.1",
+  "rpcPort": 80,
+  "rpcHost": "127.0.0.1",
+  "maxClientNum": 1000,
   "readDeadline": 5,
   "writeDeadline": 5,
   "maxGroupNum": 16,
@@ -10,7 +12,7 @@
   "redisAuth": "",
   "mysqlUsername": "root",
   "mysqlPassword": "xieqing",
-  "mysqlHost": "127.0.0.1",
+  "mysqlHost": "192.168.110.123",
   "mysqlPort": 3306,
   "mysqlDatabase": "im"
 }

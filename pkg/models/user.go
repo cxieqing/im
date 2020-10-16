@@ -1,8 +1,8 @@
-package user
+package models
 
 import (
-	"errors"
 	"im/pkg/db"
+	"im/pkg/tools"
 
 	"gorm.io/gorm"
 )
@@ -12,16 +12,16 @@ type User struct {
 	Password string
 	NikeName string
 	Icon     string
-	gorm.Model
+	Model
 }
 
-func (u *User) Add() (uint, error) {
+func (u *User) Create() (uint, error) {
 	result := db.MysqlDB.Create(u)
 	return u.ID, result.Error
 }
 
 func (u *User) BeforeCreate(tx *gorm.DB) (err error) {
-
+	u.Password = tools.Md5(u.Password)
 	return nil
 }
 
@@ -35,10 +35,17 @@ func (u *User) BeforeUpdate(tx *gorm.DB) (err error) {
 	return nil
 }
 
-func (u *User) getOne() error {
+func (u *User) ResetPassword(newPassword string) (int64, error) {
+	u.Password = tools.Md5(newPassword)
+	return u.Update()
+}
+
+func (u *User) GetOne() error {
 	result := db.MysqlDB.First(u, u.ID)
-	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
-		//@todo log
-	}
+	return result.Error
+}
+
+func (u *User) CheckUser() error {
+	result := db.MysqlDB.Where("user_name =? AND password=?", u.UserName, tools.Md5(u.Password)).First(u)
 	return result.Error
 }
