@@ -1,9 +1,9 @@
 package pkg
 
 import (
-	"fmt"
+	"encoding/json"
 	"im/pkg/models"
-	"im/pkg/tools"
+	"im/pkg/redis"
 )
 
 type UserInfo struct {
@@ -35,6 +35,21 @@ func (u *UserInfo) InitGroup(c *Client) {
 	}
 }
 
-func UserHashToken(uid uint) string {
-	return tools.Md5("user" + fmt.Sprint("%d", uid))
+func CheckUserToken(token string) *UserInfo {
+	redis := redis.NewRedis()
+	cacheKey := "login_user_" + token
+	val, err := redis.Client.Get(cacheKey).Result()
+	if err != nil {
+		return nil
+	}
+	var user = UserInfo{}
+	if err := json.Unmarshal([]byte(val), &user); err != nil {
+		return nil
+	}
+	return &user
+}
+
+func UserTokenClear(c *Client) {
+	redis := redis.NewRedis()
+	redis.Client.Do("delete", c.Token)
 }

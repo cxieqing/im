@@ -6,8 +6,9 @@ func TestUser(t *testing.T) {
 	user := User{
 		UserName: "nihao",
 		NikeName: "你好",
+		Mobile:   "13712345678",
 		Password: "nihao",
-		Icon:     "//www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
+		Avatar:   "//www.baidu.com/img/PCtm_d9c8750bed0b3c7d089fa7d55720d6cf.png",
 	}
 	t.Run("User create", func(t *testing.T) {
 		if id, _ := user.Create(); id < 1 {
@@ -26,7 +27,7 @@ func TestUser(t *testing.T) {
 	t.Run("User update", func(t *testing.T) {
 		user.NikeName = `你好你好`
 		user.UserName = "nihaonihao"
-		user.Icon = "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1984420730,272709403&fm=26&gp=0.jpg"
+		user.Avatar = "https://ss3.bdstatic.com/70cFv8Sh_Q1YnxGkpoWK1HF6hhy/it/u=1984420730,272709403&fm=26&gp=0.jpg"
 		rowsAffected, _ := user.Update()
 		if rowsAffected != 1 {
 			t.Errorf("want rowsAffected 1 got %d", rowsAffected)

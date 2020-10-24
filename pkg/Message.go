@@ -1,6 +1,8 @@
 package pkg
 
-import "im/pkg/models"
+import (
+	"im/pkg/models"
+)
 
 type Message struct {
 	ID          uint               `json:"id"`
@@ -8,6 +10,8 @@ type Message struct {
 	ContentType models.ContenType  `json:"contentType"`
 	To          uint               `json:"to"`
 	From        uint               `json:"from"`
+	FromName    string             `json:"from_name"`
+	FromAvatar  string             `json:"from_avatar"`
 	GroupID     uint               `json:"groupId"`
 	MessageType models.MessageType `json:"messageType"`
 	Len         float32            `json:"len"`
@@ -15,16 +19,20 @@ type Message struct {
 	CreateAt    int                `json:"createAt"`
 }
 
-func (m *Message) Dispatch(s *ImServer) {
+func MsgDispatch(msg interface{}, s *ImServer) {
+	m, ok := msg.(Message)
+	if !ok {
+		return
+	}
 	if m.MessageType == models.GroupType {
-		msg := MsgToGroupMsg(*m)
+		msg := MsgToGroupMsg(m)
 		_, err := msg.Create()
 		if err != nil {
 			return
 		}
 		groupBucket, err := GlobalGroupMap.Group(m.To)
 		if err != nil {
-			groupBucket.SendMessage(m, func(mid uint) {
+			groupBucket.SendMessage(&m, func(mid uint) {
 				msg := models.UserGroupMessage{
 					ToUserID:       mid,
 					GroupMessageID: msg.ID,
@@ -35,13 +43,13 @@ func (m *Message) Dispatch(s *ImServer) {
 			})
 		}
 	} else {
-		msg := MsgToUserMsg(*m)
+		msg := MsgToUserMsg(m)
 		if client := GetOnlineUserById(msg.To, s); client != nil {
 			_, err := msg.CreateSendMsg()
 			if err != nil {
 				return
 			}
-			client.MessageChn <- *m
+			client.MessageChn <- m
 		} else {
 			msg.CreateUnSendMsg()
 		}

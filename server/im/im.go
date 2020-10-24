@@ -6,6 +6,7 @@ import (
 	"im/pkg/config"
 	"net/http"
 	"sync"
+	"time"
 
 	"github.com/gorilla/websocket"
 )
@@ -24,10 +25,18 @@ var upgrader = websocket.Upgrader{
 }
 
 func CreateImServer() {
+	go handleClinet()
+
 	config := config.NewConfig()
 	addr := fmt.Sprintf("%s:%d", config.ImHost, config.ImPort)
-	http.HandleFunc("/", acceptRequest)
-	http.ListenAndServe(addr, nil)
+	s := &http.Server{
+		Addr:           addr,
+		Handler:        http.HandlerFunc(acceptRequest),
+		ReadTimeout:    10 * time.Second,
+		WriteTimeout:   10 * time.Second,
+		MaxHeaderBytes: 1 << 20,
+	}
+	s.ListenAndServe()
 }
 
 func acceptRequest(w http.ResponseWriter, r *http.Request) {
@@ -39,6 +48,7 @@ func acceptRequest(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	server.WaitConnetClinet <- conn
+
 }
 
 func handleClinet() {
@@ -46,18 +56,10 @@ func handleClinet() {
 	for {
 		select {
 		case conn := <-s.WaitConnetClinet:
-			go func() {
-
-			}()
-		}
-	}
-
-	for {
-		select {
-		case token := <-s.NewClient:
-			client := s.Clients[token]
-			go client.HandReadMessage(s)
-			go client.HandWriteMessage(s)
+			go pkg.WaitClientReady(conn, s)
+		case client := <-s.NewClient:
+			s.Clients[client.Token] = client
+			client.HandMessage(s)
 		case token := <-s.WaitCloseClient:
 			client := s.Clients[token]
 			client.Free()

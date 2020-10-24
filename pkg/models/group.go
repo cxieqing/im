@@ -34,6 +34,7 @@ func (m Members) Value() (driver.Value, error) {
 type Group struct {
 	Model
 	GroupOwner uint
+	Name       string
 	Members    Members
 }
 

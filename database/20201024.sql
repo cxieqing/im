@@ -1,6 +1,6 @@
 /*
 SQLyog 企业版 - MySQL GUI v8.14 
-MySQL - 5.7.30 : Database - im
+MySQL - 5.7.31 : Database - im
 *********************************************************************
 */
 
@@ -23,12 +23,13 @@ DROP TABLE IF EXISTS `group`;
 CREATE TABLE `group` (
   `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
   `group_owner` int(10) unsigned NOT NULL COMMENT '群主',
+  `name` varchar(100) NOT NULL DEFAULT '' COMMENT '群名称',
   `members` varchar(300) NOT NULL DEFAULT '' COMMENT '成员',
   `created_at` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `updated_at` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-  `deleted_at` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '删除时间',
+  `deleted_at` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '删除时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='用户群';
+) ENGINE=InnoDB AUTO_INCREMENT=5 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='用户群';
 
 /*Table structure for table `group_message` */
 
@@ -41,9 +42,9 @@ CREATE TABLE `group_message` (
   `from` int(11) unsigned NOT NULL DEFAULT '0' COMMENT '发送人ID',
   `to` int(11) NOT NULL DEFAULT '0' COMMENT '接收群ID',
   `len` int(11) NOT NULL DEFAULT '0' COMMENT '消息长度',
-  `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
+  `created_at` datetime DEFAULT '0000-00-00 00:00:00' COMMENT '创建时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='群消息';
+) ENGINE=InnoDB AUTO_INCREMENT=3 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='群消息';
 
 /*Table structure for table `login_recode` */
 
@@ -66,14 +67,31 @@ DROP TABLE IF EXISTS `user`;
 CREATE TABLE `user` (
   `id` int(11) NOT NULL AUTO_INCREMENT,
   `user_name` varchar(60) NOT NULL DEFAULT '' COMMENT '用户名',
-  `password` varchar(31) NOT NULL DEFAULT '' COMMENT '密码',
+  `password` varchar(32) NOT NULL DEFAULT '' COMMENT '密码',
+  `mobile` char(20) NOT NULL DEFAULT '' COMMENT '手机号码',
   `nike_name` varchar(60) NOT NULL DEFAULT '' COMMENT '昵称',
-  `icon` varchar(60) NOT NULL DEFAULT '' COMMENT '图标',
+  `avatar` varchar(250) NOT NULL DEFAULT '' COMMENT '图标',
   `created_at` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '创建时间',
   `updated_at` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '更新时间',
-  `deleted_at` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '删除时间',
+  `deleted_at` int(10) unsigned DEFAULT '0' COMMENT '删除时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='用户表';
+) ENGINE=InnoDB AUTO_INCREMENT=4 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='用户表';
+
+/*Table structure for table `user_group_message` */
+
+DROP TABLE IF EXISTS `user_group_message`;
+
+CREATE TABLE `user_group_message` (
+  `id` int(10) unsigned NOT NULL AUTO_INCREMENT,
+  `group_message_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '群消息ID',
+  `to_user_id` int(10) unsigned NOT NULL DEFAULT '0' COMMENT '接收用户ID',
+  `is_send` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否已发送',
+  `is_read` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否已读',
+  `created_at` int(11) NOT NULL DEFAULT '0',
+  `updated_at` int(11) NOT NULL DEFAULT '0',
+  `deleted_at` datetime DEFAULT NULL,
+  PRIMARY KEY (`id`)
+) ENGINE=InnoDB AUTO_INCREMENT=10 DEFAULT CHARSET=utf8mb4;
 
 /*Table structure for table `user_message` */
 
@@ -85,15 +103,14 @@ CREATE TABLE `user_message` (
   `content` varchar(500) NOT NULL DEFAULT '' COMMENT '消息内容',
   `from` int(11) NOT NULL DEFAULT '0' COMMENT '发送人',
   `to` int(11) NOT NULL DEFAULT '0' COMMENT '接收人',
-  `message_type` tinyint(4) NOT NULL DEFAULT '1' COMMENT '消息类型',
   `is_read` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否已读',
   `is_send` tinyint(4) NOT NULL DEFAULT '0' COMMENT '是否已接收',
   `len` int(11) NOT NULL DEFAULT '0' COMMENT '消息长度',
   `created_at` int(11) NOT NULL DEFAULT '0' COMMENT '创建时间',
   `updated_at` int(11) NOT NULL DEFAULT '0' COMMENT '更新时间',
-  `deleted_at` int(11) NOT NULL DEFAULT '0' COMMENT '删除时间',
+  `deleted_at` int(11) DEFAULT '0' COMMENT '删除时间',
   PRIMARY KEY (`id`)
-) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='用户消息表';
+) ENGINE=InnoDB AUTO_INCREMENT=2 DEFAULT CHARSET=utf8mb4 CHECKSUM=1 DELAY_KEY_WRITE=1 ROW_FORMAT=DYNAMIC COMMENT='用户消息表';
 
 /*!40101 SET SQL_MODE=@OLD_SQL_MODE */;
 /*!40014 SET FOREIGN_KEY_CHECKS=@OLD_FOREIGN_KEY_CHECKS */;

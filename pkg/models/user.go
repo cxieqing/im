@@ -1,6 +1,7 @@
 package models
 
 import (
+	"errors"
 	"im/pkg/db"
 	"im/pkg/tools"
 
@@ -10,8 +11,9 @@ import (
 type User struct {
 	UserName string
 	Password string
+	Mobile   string
 	NikeName string
-	Icon     string
+	Avatar   string
 	Model
 }
 
@@ -48,4 +50,13 @@ func (u *User) GetOne() error {
 func (u *User) CheckUser() error {
 	result := db.MysqlDB.Where("user_name =? AND password=?", u.UserName, tools.Md5(u.Password)).First(u)
 	return result.Error
+}
+
+func UserListByIDs(ids ...uint) []User {
+	var users []User
+	result := db.MysqlDB.Where("id in(?)", tools.ImplodeUint(",", ids...)).Find(&users)
+	if !errors.Is(result.Error, gorm.ErrRecordNotFound) {
+		//@todo log
+	}
+	return users
 }

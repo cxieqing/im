@@ -11,7 +11,7 @@ func TestGroup(t *testing.T) {
 	ownerId := uint(12)
 	memberId := uint(123)
 	otherMemberId := uint(11)
-	group := Group{}
+	group := Group{Name: "先遣小分队1"}
 	t.Run("Group create", func(t *testing.T) {
 		group.GroupOwner = ownerId
 		if id, _ := group.Create(memberId); id < 1 {
@@ -34,7 +34,7 @@ func TestGroup(t *testing.T) {
 	})
 
 	t.Run("Group add member", func(t *testing.T) {
-		group = Group{}
+		group = Group{Name: "先遣小分队2"}
 		group.GroupOwner = ownerId
 		if id, _ := group.Create(memberId); id < 1 {
 			t.Errorf("unexpect new recode id %d", id)
