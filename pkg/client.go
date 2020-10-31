@@ -45,7 +45,7 @@ func NewClient(connet *websocket.Conn, token string) *Client {
 	if err != nil {
 		return nil
 	}
-	return &Client{Connet: connet, UserInfo: UserInfoPtr}
+	return &Client{Connet: connet, UserInfo: UserInfoPtr, MessageChn: make(chan Message)}
 }
 
 func (c *Client) Init() {
@@ -87,7 +87,8 @@ func (c *Client) ReadMessage() (ClinetMsg, error) {
 }
 
 func (c *Client) ReceiveMessage(msg Message) {
-
+	msg.Complete()
+	c.MessageChn <- msg
 }
 
 func (c *Client) HandMessage(s *ImServer) {
@@ -99,13 +100,26 @@ func (c *Client) HandReadMessage(s *ImServer) {
 	for {
 		msg, err := c.ReadMessage()
 		if err != nil {
-			if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
-				s.WaitCloseClient <- c.Token
-				return
-			}
+			// if websocket.IsUnexpectedCloseError(err, websocket.CloseGoingAway) {
+			// 	s.WaitCloseClient <- c.Token
+			// }
+			s.Log.Info("用户", c.UserInfo.User.ID, "输入读取失败", err.Error())
+			return
 		} else {
 			if msg.MsgType == Normal {
 				MsgDispatch(msg.Data, s)
+			} else if msg.MsgType == ReadyConnect {
+				if len(s.Clients) >= s.MaxClientNum {
+					s.Log.Warn("服务端链接用户过多")
+					return
+				}
+				msg := ClinetMsg{}
+				c.Connet.SetReadLimit(maxMessageSize)
+				if err := c.Connet.ReadJSON(&msg); err != nil {
+					s.Log.Info("获取信息失败：", err.Error())
+					return
+				}
+				c.Init()
 			}
 		}
 	}
@@ -122,17 +136,23 @@ func (c *Client) HandWriteMessage(s *ImServer) {
 	for {
 		select {
 		case msg, ok := <-c.MessageChn:
+			s.Log.Info("发送用户", c.UserInfo.User.ID, "消息:", msg.Content)
 			if !ok {
 				//c.Connet.WriteMessage(websocket.CloseMessage, []byte{})
 				return
 			}
-			c.Connet.SetWriteDeadline(time.Now().Add(writeDeadline))
-			c.Connet.WriteJSON(msg)
+			//c.Connet.SetWriteDeadline(time.Now().Add(writeDeadline))
+			wMsg := ClinetMsg{MsgType: Normal, Data: msg}
+			err := c.Connet.WriteJSON(wMsg)
+			if err != nil {
+				s.Log.Info("发送用户", c.UserInfo.User.ID, "消息失败", err.Error())
+			}
 		case <-ticker.C:
 			if c.Connet != nil {
 				c.Connet.WriteControl(websocket.PingMessage, []byte("ping"), time.Now().Add(writeDeadline))
-				if c.PingNum > 3 {
+				if c.PingNum > 5 {
 					c.Connet.WriteMessage(websocket.CloseMessage, []byte{})
+					s.Log.Info("用户", c.UserInfo.User.ID, "ping3次无响应")
 					return
 				}
 				c.PingNum++
@@ -151,10 +171,9 @@ func (c *Client) Free() {
 		c.Connet.Close()
 		c.Connet = nil
 	}
-	if c.MessageChn != nil {
-		close(c.MessageChn)
-	}
+	s := NewImServer()
 	GlobalGroupMap.ClientFree(c)
+	s.Log.Info("用户下线了", c.UserInfo.User.ID)
 	c.UserInfo = nil
 	UserTokenClear(c)
 }
@@ -173,7 +192,7 @@ func WaitClientReady(conn *websocket.Conn, s *ImServer) error {
 	if msg.MsgType == ReadyConnect {
 		client := NewClient(conn, msg.Token)
 		if client != nil {
-			s.Log.Info("新上线用户：", client.UserInfo.User.ID)
+			s.Log.Info("新上线用户:", client.UserInfo.User.ID, "  remoteAddr:", client.Connet.RemoteAddr())
 			client.Token = ClientHashToken(client.UserInfo.User.ID)
 			client.Init()
 			s.NewClient <- client

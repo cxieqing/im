@@ -3,7 +3,6 @@ package models
 import (
 	"errors"
 	"im/pkg/db"
-	"time"
 
 	"gorm.io/gorm"
 )
@@ -15,7 +14,7 @@ type GroupMessage struct {
 	From        uint
 	To          uint
 	Len         float32
-	CreatedAt   time.Time
+	CreatedAt   int64 `gorm:"autoCreateTime"`
 }
 
 func (g *GroupMessage) Create() (uint, error) {

@@ -157,7 +157,13 @@ func (i *UserServer) UserInit(request TokenParams, reply *ResponseMsg) error {
 		return nil
 	}
 	data := ResponseData{
-		"user":  userInfo.User,
+		"user": ResponseData{
+			"id":       userInfo.User.ID,
+			"userName": userInfo.User.UserName,
+			"avatar":   userInfo.User.Avatar,
+			"mobile":   userInfo.User.Mobile,
+			"nikeName": userInfo.User.NikeName,
+		},
 		"group": models.GetGroupsByUserId(userInfo.User.ID),
 	}
 	*reply = NewSuccessMsg(data)
